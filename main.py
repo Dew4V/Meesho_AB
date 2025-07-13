@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from vertexai.preview.language_models import ChatModel
 import vertexai
+import os
 
 app = Flask(__name__)
 
@@ -12,14 +13,11 @@ def handle_ask():
         text = req_json.get("text", "")
         user = req_json.get("user_name", "unknown")
 
-        # Initialize Vertex AI in the correct region
+        # Initialize Vertex AI
         vertexai.init(project="ai-acronym-gen-dev-0725", location="us-central1")
-
-        # Load chat model
         chat_model = ChatModel.from_pretrained("chat-bison")
         chat = chat_model.start_chat()
 
-        # Define context and prompt
         context = """
         You are an AI assistant that answers acronym-related questions for Meesho.
         If the acronym is not found, respond that it is missing and suggest using /add.
@@ -32,8 +30,7 @@ def handle_ask():
     except Exception as e:
         return jsonify({"text": f"❌ Error: {str(e)}"}), 500
 
-# Run the app on Cloud Run-required settings
+# Cloud Run-compatible app runner
 if __name__ == "__main__":
-    import os
-    port = int(os.environ.get("PORT", 8080))  # Cloud Run requires port 8080
+    port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port)
